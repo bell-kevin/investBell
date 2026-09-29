@@ -3,6 +3,8 @@
 > **Status, 2026-09-29: paused.** The project is on hold, and the server and the backup machine are disconnected and powered off. Nothing below is running now: no dashboard, daily reports, alerts or backups. The instructions are kept for a restart.
 >
 > **To restart:** power on the backup machine first, then the server. Lingering starts the containers, the alert unit and the backup timer at boot, and the scheduler sends its startup message. The backup machine's dead CMOS battery (see [Backups](#backups)) may have reset its BIOS settings while unplugged, so confirm that it answers before relying on backups, then run one backup by hand. If the server gets code newer than 2026-09-29, the first daily run fits a new model: the model version name changed, which starts a new model series.
+>
+> **To power off again:** see [Powering off](#powering-off). The server turns itself back on unless its wake sources are switched off first.
 
 The home server is the former ZimaOS computer (Intel i7-6700, 16 GiB RAM), reinstalled with **Ubuntu Server 26.04 LTS** without disk encryption so that it can reboot unattended. It runs this project as two rootless Podman containers, the dashboard and a daily research scheduler, which share one persistent data directory. systemd starts both at boot through Podman's Quadlet units in `deploy/`. The Docker daemon and Docker Compose are not used.
 
@@ -250,6 +252,18 @@ When a file in `deploy/` changes, copy it again as in [Build and start](#build-a
 `~/investbell-data` contains market snapshots, fitted models, dependency caches, and reports. [Backups](#backups) copies it to the backup machine every evening.
 
 To remove the application, stop the services, run `systemctl --user disable --now investbell-backup.timer`, delete the two files from `~/.config/containers/systemd/` and `investbell-alert@.service`, `investbell-backup.service` and `investbell-backup.timer` from `~/.config/systemd/user/`, and run `systemctl --user daemon-reload`. This preserves `~/investbell-data`, the backups and the files in `~/.config/investbell/`. Do not delete the data directory as part of an update.
+
+## Powering off
+
+The accounts on both machines need a password for `sudo`, so run the shutdown from a terminal with `ssh -t`, which lets `sudo` ask for it. Running `systemctl poweroff` over SSH without `sudo` is refused. Power off the server first and the backup machine second, so the server does not attempt a backup while the backup machine is off. A clean shutdown sends no alert.
+
+The server turns itself back on after a clean power-off. On 2026-09-29 it started again 18 seconds after shutting down, most likely woken by one of the USB or PCIe wake sources listed in `/proc/acpi/wakeup`. To keep it off, switch those off for that one shutdown, power off, and unplug it once its power light goes out:
+
+```sh
+ssh -t USER@SERVER-ADDRESS 'for d in $(awk "\$3 == \"*enabled\" {print \$1}" /proc/acpi/wakeup); do echo $d | sudo tee /proc/acpi/wakeup >/dev/null; done; sudo poweroff'
+```
+
+Writing a device name to `/proc/acpi/wakeup` toggles it, and the change lasts only until the next boot. The backup machine stays off after `sudo poweroff`, but its AC Recovery setting may turn it on as soon as it is plugged back in.
 
 ## Validation status
 
