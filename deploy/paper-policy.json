@@ -1,0 +1,19 @@
+{
+  "symbol": "SPY",
+  "capital_limit": 10000.0,
+  "dca_pct": 2.0,
+  "va_pct": 0.1,
+  "capture_pct": 10.0,
+  "max_order_notional": 20000.0,
+  "max_daily_notional": 25000.0,
+  "max_position_value": 10000.0,
+  "max_daily_loss_pct": 3.0,
+  "max_drawdown_pct": 10.0,
+  "max_spread_bps": 30.0,
+  "limit_offset_bps": 10.0,
+  "max_quote_age_seconds": 15.0,
+  "max_order_age_seconds": 120.0,
+  "max_reference_gap_pct": 10.0,
+  "feed": "sip",
+  "no_loss_sales": true
+}

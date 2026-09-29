@@ -1,0 +1,12 @@
+[Unit]
+Description=InvestBell daily Yahoo research report (no brokerage orders)
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/investBell
+ExecStart=%h/investBell/.venv/bin/python -m investbell.daily --symbol SPY --start 2020-01-01 --data-dir %h/investBell/data --report-dir %h/investBell/data/reports --model-mode fitted --initial-cash 10000 --slippage-bps 5 --fee 0
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+UMask=0077
+NoNewPrivileges=true
+Nice=10

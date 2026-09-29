@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Rootless Podman Quadlet unit for the Alpaca PAPER runner; see docs/paper-trading.md.
+# Install it only after initializing the paper account. It can submit paper orders;
+# there is no live endpoint. Keys come from the Podman secret investbell-paper-env.
+
+[Unit]
+Description=investBell Alpaca paper runner (no live trading)
+# Every stop except a requested one needs review, so send an alert.
+OnFailure=investbell-alert@%n.service
+
+[Container]
+ContainerName=investbell-paper
+# A separate tag, so research updates cannot change the frozen execution code.
+Image=localhost/investbell:paper
+Pull=never
+Exec=python -m investbell.paper --ledger /data/paper.sqlite3 --env-file /run/secrets/investbell-paper-env run --interval 15
+Volume=%h/investbell-data:/data
+UserNS=keep-id:uid=10001,gid=10001
+# Mode 0400 for the container's user: the runner refuses a credential file others can read.
+Secret=investbell-paper-env,type=mount,uid=10001,gid=10001,mode=0400
+ReadOnly=true
+DropCapability=all
+NoNewPrivileges=true
+# On SIGTERM the runner persists a stop and cancels its own orders; give the broker time.
+StopTimeout=90
+
+[Service]
+# Safety stops need operator review; do not restart a halted runner.
+Restart=no
+TimeoutStopSec=120
+# The runner exits 130 after a requested stop.
+SuccessExitStatus=130
+
+[Install]
+WantedBy=default.target

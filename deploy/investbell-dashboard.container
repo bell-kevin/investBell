@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Rootless Podman Quadlet unit. Install into ~/.config/containers/systemd/;
+# see docs/server.md. Build the image first: podman build -t localhost/investbell:local .
+# Research only: this dashboard never submits orders.
+
+[Unit]
+Description=investBell research dashboard
+# Send an alert through deploy/investbell-alert@.service if this unit fails.
+OnFailure=investbell-alert@%n.service
+
+[Container]
+ContainerName=investbell-dashboard
+Image=localhost/investbell:local
+Pull=never
+PublishPort=8765:8765
+Volume=%h/investbell-data:/data
+# Run the image's UID/GID 10001 as the host account, so it owns the data files.
+UserNS=keep-id:uid=10001,gid=10001
+ReadOnly=true
+DropCapability=all
+NoNewPrivileges=true
+HealthCmd=python -m investbell.healthcheck
+HealthInterval=30s
+HealthTimeout=5s
+HealthStartPeriod=20s
+HealthRetries=3
+# Stop a hung dashboard so systemd restarts it.
+HealthOnFailure=kill
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

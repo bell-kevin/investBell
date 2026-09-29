@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+data/
+artifacts/
+_site/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+*.log
+docs/network-discovery.md
+.shared-chat.txt

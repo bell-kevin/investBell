@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# systemd user timer for investbell-backup.service; see docs/server.md. It runs every
+# evening after the weekday 18:00 New York report, and at the next boot if the server
+# was off at that time.
+
+[Unit]
+Description=Back up investBell data every evening
+
+[Timer]
+OnCalendar=*-*-* 19:30:00 America/New_York
+RandomizedDelaySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target

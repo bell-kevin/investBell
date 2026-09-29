@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Rootless Podman Quadlet unit. Install into ~/.config/containers/systemd/;
+# see docs/server.md. Runs a research report at startup and weekdays at 18:00
+# New York time. It never submits orders; the paper runner is separate and opt-in.
+
+[Unit]
+Description=investBell daily research scheduler
+# Send an alert through deploy/investbell-alert@.service if this unit fails.
+OnFailure=investbell-alert@%n.service
+
+[Container]
+ContainerName=investbell-scheduler
+Image=localhost/investbell:local
+Pull=never
+Exec=python -m investbell.scheduler --data-dir /data --report-dir /data/reports --symbol SPY --start 2021-01-04 --model-mode fitted
+Volume=%h/investbell-data:/data
+# Alert settings; the file must exist, and an empty one turns alerts off.
+EnvironmentFile=%h/.config/investbell/alerts.env
+UserNS=keep-id:uid=10001,gid=10001
+ReadOnly=true
+DropCapability=all
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# systemd user unit template. Install into ~/.config/systemd/user/; see docs/server.md.
+# The Quadlet units start investbell-alert@<their unit>.service when they fail. It
+# sends that unit's last output lines to the ntfy topic in ~/.config/investbell/alerts.env,
+# using the host's python3; investbell.notify needs only the standard library.
+
+[Unit]
+Description=Send an investBell alert that %i failed
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/investbell/alerts.env
+WorkingDirectory=%h/investBell
+ExecStart=/usr/bin/python3 -m investbell.notify --unit %i
+NoNewPrivileges=true

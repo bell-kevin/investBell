@@ -1,0 +1,16 @@
+[Unit]
+Description=InvestBell local research dashboard
+
+[Service]
+Type=simple
+WorkingDirectory=%h/investBell
+ExecStart=%h/investBell/.venv/bin/python -m investbell.server --host 127.0.0.1 --port 8765 --data-dir %h/investBell/data
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+UMask=0077
+NoNewPrivileges=true
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

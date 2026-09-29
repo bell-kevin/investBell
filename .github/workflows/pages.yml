@@ -1,0 +1,35 @@
+# Publishes the saved snapshot of the lab to GitHub Pages. Pages cannot run the
+# Python server, so the site holds results that `scripts/build_site.py snapshot`
+# computed ahead of time and committed under site/snapshot/.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    # A free GitHub account can publish Pages only from a public repository.
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 scripts/build_site.py assemble --out _site
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v5

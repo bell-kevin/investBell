@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# systemd user unit. Install into ~/.config/systemd/user/ with investbell-backup.timer;
+# see docs/server.md. It copies ~/investbell-data into a staging folder with
+# python3 -m investbell.backup, which takes each SQLite database through SQLite's
+# online backup and leaves out the dependency cache. It then sends the copy to the
+# encrypted restic repository on the backup machine, applies the retention policy
+# and reads every stored file back to check it.
+
+[Unit]
+Description=Back up investBell data to the backup machine
+# Send an alert through investbell-alert@.service if the backup fails.
+OnFailure=investbell-alert@%n.service
+
+[Service]
+Type=oneshot
+# "investbellbackup" is a Host entry in ~/.ssh/config that names the backup machine.
+Environment=RESTIC_REPOSITORY=sftp:investbellbackup:restic/investbell
+Environment=RESTIC_PASSWORD_FILE=%h/.config/investbell/restic-password
+StateDirectory=investbell-backup
+WorkingDirectory=%h/investBell
+ExecStartPre=/usr/bin/python3 -m investbell.backup %h/investbell-data %S/investbell-backup/data
+ExecStart=/usr/bin/restic backup --host investbell --tag daily %S/investbell-backup/data
+ExecStart=/usr/bin/restic forget --host investbell --keep-daily 30 --keep-weekly 52 --keep-monthly 120 --prune
+ExecStart=/usr/bin/restic check --read-data
+TimeoutStartSec=1h
+UMask=0077
+NoNewPrivileges=true
+Nice=10

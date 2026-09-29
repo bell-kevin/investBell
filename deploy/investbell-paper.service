@@ -1,0 +1,24 @@
+# Optional user unit. Install only after configuring and initializing the paper account.
+[Unit]
+Description=investBell Alpaca paper runner (no live trading)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/investBell
+ExecStart=%h/investBell/.venv/bin/python -m investbell.paper --ledger %h/investBell/data/paper.sqlite3 --env-file %h/investBell/.env.paper run --interval 15
+# Safety stops need operator review; do not automatically restart a halted runner.
+Restart=no
+TimeoutStopSec=90
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/investBell/data
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
